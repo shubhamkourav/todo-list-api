@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { verifyAccessToken } = require('../services/tokenService');
 const redisClient = require('../config/redis');
 const User = mongoose.model('User');
+const rateLimit = require('express-rate-limit');
 
 
 
@@ -28,3 +29,12 @@ exports.verifyRefreshToken = async (req, res, next) => {
 
     next(); // Proceed to the next middleware/route handler
 };
+
+exports.authLimit = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 100 requests per windowMs
+    message: {
+        status: 429,
+        message: "Too many requests, please try again later."
+    }
+});
