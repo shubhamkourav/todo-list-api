@@ -82,6 +82,3 @@ exports.getAllTodo = async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve todos' });
     }
 }
-
-
-// get all todos for a user and pagination sorting searching
