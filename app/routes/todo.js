@@ -7,7 +7,7 @@ const route = require('express').Router();
 route.get("/", getAllTodo);
 route.post("/",  createTodo);
 route.get("/:id",  readTodo);
-route.post("/:id",  updateTodo);
-route.post("/",  deleteTodo);
+route.put("/:id",  updateTodo);
+route.delete("/:id",  deleteTodo);
 
 module.exports = route;

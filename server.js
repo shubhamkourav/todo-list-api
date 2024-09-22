@@ -35,6 +35,10 @@ const apiRoutes = require('./app/routes'); // Route for blogs
 
 app.use('/api', apiRoutes);
 
+// 404 response
+app.use((req, res) => {
+    res.status(404).send({ message: 'Not Found' });
+});
 // Basic error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);

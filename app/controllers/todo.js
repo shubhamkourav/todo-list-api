@@ -4,7 +4,7 @@ const Todo = mongoose.model('Todo')
 
 exports.createTodo = async (req, res) => {
     try {
-        const todo = new Todo({...req.body, user: req.user._id });
+        const todo = new Todo({ ...req.body, user: req.user._id });
         await todo.save();
         res.status(201).json(todo);
     } catch (error) {
@@ -13,7 +13,7 @@ exports.createTodo = async (req, res) => {
     }
 }
 
-exports.readTodo = async (req, res) => { 
+exports.readTodo = async (req, res) => {
     try {
         const todo = await Todo.findById(req.params.id).populate('user', 'name');
         if (!todo) return res.status(404).json({ message: 'Todo not found' });
@@ -24,7 +24,7 @@ exports.readTodo = async (req, res) => {
     }
 }
 
-exports.updateTodo = async (req, res) => { 
+exports.updateTodo = async (req, res) => {
     try {
         const todo = await Todo.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('user', 'name');
         if (!todo) return res.status(404).json({ message: 'Todo not found' });
@@ -35,7 +35,7 @@ exports.updateTodo = async (req, res) => {
     }
 }
 
-exports.deleteTodo = async (req, res) => { 
+exports.deleteTodo = async (req, res) => {
     try {
         const todo = await Todo.findByIdAndDelete(req.params.id);
         if (!todo) return res.status(404).json({ message: 'Todo not found' });
@@ -46,9 +46,9 @@ exports.deleteTodo = async (req, res) => {
     }
 }
 // get all todos for a user and pagination sorting searching
-exports.getAllTodo = async (req, res) => { 
+exports.getAllTodo = async (req, res) => {
     try {
-        const { userId } = req.query; // Get userId from query parameters
+        const user = req.query.user; // Get user from query parameters
         const { page = 1, limit = 10, sort = 'createdAt', order = 'asc', search = '' } = req.query;
 
         // Convert pagination and sorting parameters
@@ -57,25 +57,26 @@ exports.getAllTodo = async (req, res) => {
         const sortOrder = order === 'desc' ? -1 : 1;
 
         // Build search criteria
-        const searchCriteria = search ? { title: { $regex: search, $options: 'i' }, userId } : { userId };
+        const searchCriteria = search ? { title: { $regex: search, $options: 'i' } } : {}
+        if (user) searchCriteria.user = user;
 
+        // Fetch todos with pagination, sorting, and searching
+        const todos = await Todo.find(searchCriteria)
+            .sort({ [sort]: sortOrder })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
 
-       // Fetch todos with pagination, sorting, and searching
-       const todos = await Todo.find(searchCriteria)
-       .sort({ [sort]: sortOrder })
-       .skip((pageNumber - 1) * limitNumber)
-       .limit(limitNumber);
+        // Count total todos for pagination
+        const totalTodos = await Todo.countDocuments(searchCriteria);
 
-   // Count total todos for pagination
-   const totalTodos = await Todo.countDocuments(searchCriteria);
-
-   // Send response with todos and pagination info
-   res.json({
-       total: totalTodos,
-       page: pageNumber,
-       pages: Math.ceil(totalTodos / limitNumber),
-       data: todos
-   });
+        // Send response with todos and pagination info
+        res.json({
+            total: totalTodos,
+            page: pageNumber,
+            limit: limitNumber,
+            pages: Math.ceil(totalTodos / limitNumber),
+            data: todos
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to retrieve todos' });

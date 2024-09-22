@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     }
+}, {
+    timestamps: true,
+    versionKey: false,
+    toJSON: { virtuals: true } // Include virtual fields in JSON output
 });
 
 // Hash password before saving the user
@@ -28,7 +32,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare input password with the hashed password
-userSchema.methods.comparePassword = function(password) {
+userSchema.methods.comparePassword = function (password) {
     return bcrypt.compare(password, this.password);
 };
 

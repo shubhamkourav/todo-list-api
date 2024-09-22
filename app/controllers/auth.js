@@ -42,15 +42,15 @@ exports.refreshToken = async (req, res) => {
 
     try {
         const { token } = req.body;
-        const savedToken = await redisClient.get(`refreshToken:${req.user.id}`);
+        const user = verifyRefreshToken(token)
+        const savedToken = await redisClient.get(`refreshToken:${user.id}`);
 
         if (token !== savedToken) {
             return res.status(403).json({ message: "Invalid refresh token" });
         }
 
-        const user = verifyRefreshToken(token)
         const newAccessToken = generateAccessToken(user.id);
-        const newRefreshToken = generateRefreshToken(user.id);
+        const newRefreshToken = await generateRefreshToken(user.id);
 
         res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 

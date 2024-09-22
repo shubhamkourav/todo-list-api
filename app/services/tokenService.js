@@ -26,7 +26,7 @@ const verifyAccessToken = (token) => {
         return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     } catch (err) {
 
-        return new Error('Invalid access token');
+        throw new Error('Invalid access token');
     }
 
 };
